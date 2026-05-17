@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>הגרלה - עיריית באר שבע</title>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;800;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Heebo', 'Segoe UI', Arial, sans-serif;
+      background: #0a0e2e;
+      min-height: 100vh;
+      direction: rtl;
+      overflow-x: hidden;
+    }
+
+    /* ===== ANIMATED STARFIELD BG ===== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(0,87,200,0.25) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(232,168,0,0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 80%, rgba(138,43,226,0.2) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      position: relative;
+      z-index: 10;
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding: 0 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 86px;
+    }
+
+    .logo-area { display: flex; align-items: center; gap: 14px; }
+
+    .city-logo { width: 64px; height: 64px; filter: drop-shadow(0 0 10px rgba(232,168,0,0.6)); }
+
+    .city-title h1 {
+      font-size: 1.55rem;
+      color: #fff;
+      font-weight: 900;
+      line-height: 1.1;
+      text-shadow: 0 0 20px rgba(0,120,255,0.6);
+    }
+
+    .city-title p {
+      font-size: 0.8rem;
+      color: #e8a800;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .header-badge {
+      background: linear-gradient(135deg, #e8a800, #ffcc00);
+      color: #0a0e2e;
+      padding: 9px 24px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 900;
+      box-shadow: 0 4px 20px rgba(232,168,0,0.5);
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== MAIN ===== */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1050px;
+      margin: 28px auto;
+      padding: 0 20px 50px;
+    }
+
+    /* ===== GLASS CARD ===== */
+    .glass-card {
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+      padding: 28px 32px;
+      margin-bottom: 26px;
+    }
+
+    .glass-card h2 {
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ===== UPLOAD ===== */
+    .upload-area {
+      border: 2px dashed rgba(0,150,255,0.5);
+      border-radius: 14px;
+      padding: 26px;
+      text-align: center;
+      background: rgba(0,87,200,0.1);
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .upload-area:hover, .upload-area.dragover {
+      background: rgba(0,87,200,0.2);
+      border-color: #0096ff;
+      box-shadow: 0 0 20px rgba(0,150,255,0.3);
+    }
+
+    .upload-area input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+
+    .upload-icon { font-size: 2.6rem; margin-bottom: 8px; }
+
+    .upload-area p { color: #c8deff; font-size: 1rem; font-weight: 600; }
+    .upload-area small { color: rgba(200,222,255,0.6); font-size: 0.8rem; }
+
+    .participants-count {
+      margin-top: 14px;
+      background: linear-gradient(135deg, #0057c8, #0096ff);
+      color: #fff;
+      padding: 9px 22px;
+      border-radius: 25px;
+      display: inline-block;
+      font-weight: 800;
+      font-size: 0.95rem;
+      box-shadow: 0 4px 15px rgba(0,150,255,0.4);
+    }
+
+    /* ===== TABLE ===== */
+    .table-section {
+      margin-top: 16px;
+      max-height: 190px;
+      overflow-y: auto;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .table-section::-webkit-scrollbar { width: 6px; }
+    .table-section::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+    .table-section::-webkit-scrollbar-thumb { background: rgba(0,150,255,0.5); border-radius: 3px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+
+    thead th {
+      background: rgba(0,87,200,0.6);
+      color: #fff;
+      padding: 10px 14px;
+      position: sticky;
+      top: 0;
+      font-weight: 800;
+    }
+
+    tbody tr:nth-child(even) { background: rgba(255,255,255,0.04); }
+    tbody tr:hover { background: rgba(0,150,255,0.12); }
+
+    tbody td {
+      padding: 8px 14px;
+      color: rgba(255,255,255,0.85);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ===== WHEEL SECTION ===== */
+    .wheel-section { text-align: center; }
+
+    .wheel-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 28px;
+    }
+
+    /* Animated outer glow ring */
+    .wheel-glow {
+      position: absolute;
+      inset: -18px;
+      border-radius: 50%;
+      background: conic-gradient(
+        #ff0080, #ff6600, #ffcc00, #00ff88, #00ccff, #7b2fff, #ff0080
+      );
+      animation: spinGlow 4s linear infinite;
+      z-index: -1;
+      filter: blur(8px);
+      opacity: 0.7;
+    }
+
+    @keyframes spinGlow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .wheel-ring {
+      position: absolute;
+      inset: -10px;
+      border-radius: 50%;
+      border: 6px solid transparent;
+      background: conic-gradient(#003d8f, #0096ff, #e8a800, #ff6600, #003d8f) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask-composite: exclude;
+      z-index: 1;
+    }
+
+    /* Arrow pointing from right */
+    .wheel-arrow {
+      position: absolute;
+      top: 50%;
+      right: -38px;
+      transform: translateY(-50%);
+      z-index: 20;
+      filter: drop-shadow(0 0 8px rgba(232,168,0,0.9));
+    }
+
+    #wheelCanvas {
+      border-radius: 50%;
+      display: block;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* ===== SPIN BUTTON ===== */
+    .spin-btn {
+      background: linear-gradient(135deg, #ff6600, #e8a800, #ffcc00);
+      color: #0a0e2e;
+      border: none;
+      padding: 16px 56px;
+      font-size: 1.3rem;
+      font-weight: 900;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 30px rgba(232,168,0,0.6), 0 0 0 3px rgba(232,168,0,0.2);
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .spin-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+      transform: rotate(45deg) translateX(-100%);
+      transition: transform 0.5s;
+    }
+
+    .spin-btn:hover:not(:disabled)::before { transform: rotate(45deg) translateX(100%); }
+
+    .spin-btn:hover:not(:disabled) {
+      transform: translateY(-4px) scale(1.04);
+      box-shadow: 0 12px 40px rgba(232,168,0,0.8), 0 0 0 5px rgba(232,168,0,0.3);
+    }
+
+    .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* ===== HISTORY ===== */
+    .history-section { margin-top: 22px; text-align: right; }
+
+    .history-section h3 { color: rgba(255,255,255,0.8); font-size: 1rem; margin-bottom: 10px; }
+
+    .history-list { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .history-chip {
+      background: linear-gradient(135deg, rgba(0,87,200,0.6), rgba(138,43,226,0.6));
+      color: #fff;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+    }
+
+    .history-chip .num {
+      background: #e8a800;
+      color: #0a0e2e;
+      border-radius: 50%;
+      width: 20px; height: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 900;
+    }
+
+    .empty-msg { color: rgba(255,255,255,0.4); font-size: 1rem; padding: 24px; text-align: center; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      position: relative; z-index: 1;
+      text-align: center; padding: 18px;
+      color: rgba(255,255,255,0.35); font-size: 0.82rem;
+    }
+
+    /* =============================================
+       WINNER OVERLAY - FULL SCREEN
+    ============================================= */
+    #winnerOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: rgba(5,8,30,0.88);
+      backdrop-filter: blur(6px);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    #winnerOverlay.show { display: flex; }
+
+    .winner-modal {
+      position: relative;
+      text-align: center;
+      animation: modalBounce 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      max-width: 680px;
+      width: 90%;
+      padding: 50px 40px 40px;
+    }
+
+    @keyframes modalBounce {
+      0%   { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+      60%  { transform: scale(1.08) rotate(2deg); opacity: 1; }
+      80%  { transform: scale(0.97) rotate(-1deg); }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    /* glowing card */
+    .winner-modal-card {
+      background: linear-gradient(160deg, #0c1240 0%, #0d0a2e 60%, #1a0830 100%);
+      border-radius: 28px;
+      border: 2px solid transparent;
+      padding: 50px 40px 40px;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 0 60px rgba(232,168,0,0.4),
+        0 0 120px rgba(138,43,226,0.3),
+        inset 0 0 80px rgba(0,87,200,0.1);
+    }
+
+    /* rainbow border */
+    .winner-modal-card::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 28px;
+      background: conic-gradient(
+        #ff0080, #ff6600, #ffcc00, #00ff88, #00ccff, #7b2fff, #ff0080
+      );
+      z-index: -1;
+      animation: rotateBorder 3s linear infinite;
+    }
+
+    @keyframes rotateBorder {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* inner white overlay to show card bg */
+    .winner-modal-card::after {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      border-radius: 26px;
+      background: linear-gradient(160deg, #0c1240 0%, #0d0a2e 60%, #1a0830 100%);
+      z-index: 0;
+    }
+
+    .winner-modal-card > * { position: relative; z-index: 1; }
+
+    .winner-stars {
+      font-size: 2.8rem;
+      animation: starPulse 1.5s ease-in-out infinite;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    @keyframes starPulse {
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      50%       { transform: scale(1.15); filter: brightness(1.4) drop-shadow(0 0 10px gold); }
+    }
+
+    .winner-label {
+      color: rgba(255,255,255,0.7);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .winner-company-name {
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffcc00, #ff8800, #ff0080, #7b2fff, #00ccff);
+      background-size: 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 3s ease infinite;
+      line-height: 1.15;
+      margin-bottom: 14px;
+      text-shadow: none;
+      word-break: break-word;
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .winner-id-pill {
+      display: inline-block;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.85);
+      border-radius: 50px;
+      padding: 7px 22px;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 30px;
+      letter-spacing: 1px;
+    }
+
+    .winner-round-badge {
+      position: absolute;
+      top: 20px;
+      left: 24px;
+      background: linear-gradient(135deg, #e8a800, #ffcc00);
+      color: #0a0e2e;
+      border-radius: 50px;
+      padding: 5px 16px;
+      font-size: 0.82rem;
+      font-weight: 900;
+    }
+
+    .winner-close-btn {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      border-radius: 50px;
+      padding: 12px 36px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .winner-close-btn:hover {
+      background: rgba(255,255,255,0.2);
+      transform: scale(1.05);
+    }
+
+    /* ===== CONFETTI CANVAS ===== */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 11000;
+    }
+
+    /* ===== TICKER (spinning text around modal) ===== */
+    .winner-ticker {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 8px;
+      font-size: 1.8rem;
+      animation: tickerBounce 0.6s ease infinite alternate;
+    }
+
+    @keyframes tickerBounce {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-5px); }
+    }
+
+    /* Pulse ring behind wheel when spinning */
+    .pulse-ring {
+      position: absolute;
+      inset: -30px;
+      border-radius: 50%;
+      border: 4px solid rgba(232,168,0,0.4);
+      animation: pulseRing 1.2s ease-out infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes pulseRing {
+      0%   { transform: scale(0.9); opacity: 0.8; }
+      100% { transform: scale(1.3); opacity: 0; }
+    }
+
+    .pulse-ring2 {
+      position: absolute;
+      inset: -30px;
+      border-radius: 50%;
+      border: 4px solid rgba(0,150,255,0.3);
+      animation: pulseRing 1.2s ease-out 0.4s infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- CONFETTI CANVAS -->
+<canvas id="confettiCanvas"></canvas>
+
+<!-- WINNER OVERLAY -->
+<div id="winnerOverlay">
+  <div class="winner-modal">
+    <div class="winner-modal-card">
+      <div class="winner-round-badge" id="roundBadge">סיבוב #1</div>
+      <span class="winner-stars">&#127942;&#11088;&#127942;</span>
+      <div class="winner-label">&#127881; &nbsp; הזוכה הוא &nbsp; &#127881;</div>
+      <div class="winner-company-name" id="overlayWinnerName"></div>
+      <div class="winner-id-pill" id="overlayWinnerId"></div>
+      <div class="winner-ticker">&#127880; &#10024; &#127881; &#10024; &#127880;</div>
+    </div>
+    <br/>
+    <button class="winner-close-btn" onclick="closeWinner()">&#10006; &nbsp; סגור והמשך</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo-area">
+    <svg class="city-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="lg" cx="50%" cy="30%" r="70%">
+          <stop offset="0%" stop-color="#1a6fff"/>
+          <stop offset="100%" stop-color="#003d8f"/>
+        </radialGradient>
+      </defs>
+      <circle cx="50" cy="50" r="48" fill="url(#lg)"/>
+      <polygon points="50,8 63,36 93,36 70,55 79,83 50,64 21,83 30,55 7,36 37,36" fill="#e8a800"/>
+      <circle cx="50" cy="50" r="13" fill="#fff"/>
+      <circle cx="50" cy="50" r="8" fill="#003d8f"/>
+    </svg>
+    <div class="city-title">
+      <h1>עיריית באר שבע</h1>
+      <p>Beer Sheva Municipality</p>
+    </div>
+  </div>
+  <div class="header-badge">&#127881; מערכת הגרלה עירונית</div>
+</header>
+
+<main>
+
+  <!-- Upload -->
+  <div class="glass-card">
+    <h2>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#0096ff"><path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+      העלאת קובץ משתתפים
+    </h2>
+    <div class="upload-area" id="dropZone">
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv"/>
+      <div class="upload-icon">&#128196;</div>
+      <p>גרור קובץ לכאן &nbsp;|&nbsp; לחץ לבחירה</p>
+      <small>Excel (.xlsx/.xls) או CSV &nbsp;|&nbsp; עמודה 1: ת.ז &nbsp;|&nbsp; עמודה 2: שם חברה</small>
+    </div>
+
+    <div id="statsArea" style="display:none; margin-top:12px;">
+      <span class="participants-count" id="countBadge">0 משתתפים</span>
+    </div>
+
+    <div class="table-section" id="tableSection" style="display:none;">
+      <table>
+        <thead><tr><th>#</th><th>ת.ז</th><th>שם חברה</th></tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Wheel -->
+  <div class="glass-card wheel-section">
+    <h2 style="justify-content:center;">&#127881; גלגל ההגרלה</h2>
+
+    <div id="noDataMsg" class="empty-msg">
+      &#128280; יש להעלות קובץ משתתפים תחילה
+    </div>
+
+    <div id="wheelContent" style="display:none;">
+      <div class="wheel-wrapper" id="wheelWrapper">
+        <div class="wheel-glow"></div>
+        <div class="pulse-ring" id="pulseRing" style="display:none;"></div>
+        <div class="pulse-ring2" id="pulseRing2" style="display:none;"></div>
+        <canvas id="wheelCanvas" width="500" height="500"></canvas>
+
+        <!-- Arrow SVG pointing left from the right side -->
+        <div class="wheel-arrow">
+          <svg width="46" height="46" viewBox="0 0 46 46">
+            <polygon points="46,23 6,6 14,23 6,40" fill="#e8a800"/>
+            <polygon points="46,23 6,6 14,23 6,40" fill="none" stroke="#fff" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+
+      <br/>
+      <button class="spin-btn" id="spinBtn" onclick="spinWheel()">
+        &#9654;&nbsp; סובב את הגלגל
+      </button>
+
+      <div class="history-section" id="historySection" style="display:none;">
+        <h3>&#128203; זוכים קודמים</h3>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>&copy; 2025 עיריית באר שבע &mdash; מערכת הגרלה דיגיטלית</footer>
+
+<script>
+// ============================================================
+//  DATA
+// ============================================================
+let participants = [];
+let isSpinning   = false;
+let currentAngle = 0;
+let winners      = [];
+
+// ============================================================
+//  VIVID COLOR PALETTE
+// ============================================================
+const SLICE_COLORS = [
+  { fill: '#ff0055', shine: '#ff6699' },
+  { fill: '#ff6600', shine: '#ffaa44' },
+  { fill: '#ffcc00', shine: '#ffe566' },
+  { fill: '#00cc55', shine: '#44ff88' },
+  { fill: '#00aaff', shine: '#55ccff' },
+  { fill: '#7b2fff', shine: '#aa77ff' },
+  { fill: '#ff0099', shine: '#ff55cc' },
+  { fill: '#ff4400', shine: '#ff7744' },
+  { fill: '#33cc00', shine: '#77ff44' },
+  { fill: '#0055ff', shine: '#4499ff' },
+  { fill: '#cc00ff', shine: '#ee55ff' },
+  { fill: '#00ccaa', shine: '#44ffdd' },
+  { fill: '#ff3300', shine: '#ff7766' },
+  { fill: '#ffaa00', shine: '#ffcc44' },
+  { fill: '#00bbff', shine: '#55ddff' },
+  { fill: '#8800ff', shine: '#bb55ff' },
+  { fill: '#ff0066', shine: '#ff55aa' },
+  { fill: '#44dd00', shine: '#88ff44' },
+];
+
+// ============================================================
+//  FILE UPLOAD
+// ============================================================
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) processFile(e.target.files[0]); });
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      let startRow = 0;
+      if (rows.length > 0) {
+        const first = rows[0].map(c => String(c).trim());
+        if (first.some(c => c.includes('ת') || c.includes('שם') || c.toLowerCase().includes('id') || c.toLowerCase().includes('name')))
+          startRow = 1;
+      }
+
+      const parsed = [];
+      for (let i = startRow; i < rows.length; i++) {
+        const idVal   = String(rows[i][0] || '').trim();
+        const nameVal = String(rows[i][1] || '').trim();
+        if (idVal || nameVal) parsed.push({ id: idVal, name: nameVal || 'לא ידוע' });
+      }
+
+      if (!parsed.length) { alert('לא נמצאו רשומות. ודא: עמודה 1 = ת.ז, עמודה 2 = שם חברה.'); return; }
+
+      participants = parsed;
+      renderTable();
+      buildWheel();
+      document.getElementById('statsArea').style.display   = 'block';
+      document.getElementById('countBadge').textContent    = parsed.length + ' משתתפים נטענו';
+      document.getElementById('tableSection').style.display = 'block';
+      document.getElementById('noDataMsg').style.display   = 'none';
+      document.getElementById('wheelContent').style.display = 'block';
+    } catch(err) { alert('שגיאה: ' + err.message); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderTable() {
+  document.getElementById('tableBody').innerHTML =
+    participants.map((p, i) =>
+      `<tr><td>${i+1}</td><td>${esc(p.id)}</td><td>${esc(p.name)}</td></tr>`
+    ).join('');
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ============================================================
+//  WHEEL DRAW
+// ============================================================
+const canvas = document.getElementById('wheelCanvas');
+const ctx    = canvas.getContext('2d');
+
+function buildWheel() { drawWheel(currentAngle); }
+
+function drawWheel(rotation) {
+  const cx = canvas.width  / 2;
+  const cy = canvas.height / 2;
+  const R  = cx - 8;
+  const n  = participants.length;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!n) return;
+
+  const slice = (2 * Math.PI) / n;
+
+  for (let i = 0; i < n; i++) {
+    const a0 = rotation + i * slice;
+    const a1 = a0 + slice;
+    const col = SLICE_COLORS[i % SLICE_COLORS.length];
+
+    // Radial gradient per slice
+    const midA  = a0 + slice / 2;
+    const grad  = ctx.createRadialGradient(cx, cy, R * 0.2, cx + Math.cos(midA) * R * 0.6, cy + Math.sin(midA) * R * 0.6, R * 0.5);
+    grad.addColorStop(0,   col.shine);
+    grad.addColorStop(0.5, col.fill);
+    grad.addColorStop(1,   col.fill + 'bb');
+
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, a0, a1);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Bright divider line
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+
+    // Text label
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(a0 + slice / 2);
+
+    let label = participants[i].name;
+    const maxLen = 13;
+    if (label.length > maxLen) label = label.substring(0, maxLen) + '…';
+
+    const fontSize = Math.max(9, Math.min(14, R * 0.085));
+    ctx.font      = `bold ${fontSize}px Heebo, Arial`;
+    ctx.textAlign = 'right';
+
+    // Text shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur  = 4;
+    ctx.fillStyle   = '#ffffff';
+    ctx.fillText(label, R - 16, fontSize * 0.38);
+
+    ctx.restore();
+  }
+
+  // Outer ring shine
+  const ringGrad = ctx.createRadialGradient(cx, cy, R - 12, cx, cy, R + 2);
+  ringGrad.addColorStop(0, 'rgba(255,255,255,0)');
+  ringGrad.addColorStop(1, 'rgba(255,255,255,0.12)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+  ctx.strokeStyle = ringGrad;
+  ctx.lineWidth   = 14;
+  ctx.stroke();
+
+  // Center hub
+  const hubGrad = ctx.createRadialGradient(cx - 8, cy - 8, 2, cx, cy, 30);
+  hubGrad.addColorStop(0, '#4499ff');
+  hubGrad.addColorStop(0.5, '#0057c8');
+  hubGrad.addColorStop(1,   '#003d8f');
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 30, 0, 2 * Math.PI);
+  ctx.fillStyle   = hubGrad;
+  ctx.shadowColor = 'rgba(0,150,255,0.8)';
+  ctx.shadowBlur  = 16;
+  ctx.fill();
+  ctx.shadowBlur  = 0;
+  ctx.strokeStyle = '#e8a800';
+  ctx.lineWidth   = 3.5;
+  ctx.stroke();
+
+  // Hub inner dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 10, 0, 2 * Math.PI);
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, 5, 0, 2 * Math.PI);
+  ctx.fillStyle = '#0057c8';
+  ctx.fill();
+}
+
+// ============================================================
+//  SPIN
+// ============================================================
+function spinWheel() {
+  if (isSpinning || !participants.length) return;
+  isSpinning = true;
+
+  document.getElementById('spinBtn').disabled = true;
+  document.getElementById('pulseRing').style.display  = 'block';
+  document.getElementById('pulseRing2').style.display = 'block';
+
+  const winnerIndex = Math.floor(Math.random() * participants.length);
+  const slice       = (2 * Math.PI) / participants.length;
+  const extraSpins  = (6 + Math.floor(Math.random() * 5)) * 2 * Math.PI;
+  const needed      = -currentAngle - (winnerIndex * slice + slice / 2);
+  const total       = extraSpins + ((needed % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+
+  const duration  = 4500 + Math.random() * 2000;
+  const startAngle = currentAngle;
+  const startTime  = performance.now();
+
+  // Easing: fast start, dramatic slow-down
+  function easeOut(t) { return 1 - Math.pow(1 - t, 5); }
+
+  function animate(now) {
+    const p  = Math.min((now - startTime) / duration, 1);
+    const ep = easeOut(p);
+
+    currentAngle = startAngle + total * ep;
+    drawWheel(currentAngle);
+
+    if (p < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      currentAngle = startAngle + total;
+      drawWheel(currentAngle);
+      isSpinning = false;
+      document.getElementById('spinBtn').disabled = false;
+      document.getElementById('pulseRing').style.display  = 'none';
+      document.getElementById('pulseRing2').style.display = 'none';
+      showWinner(winnerIndex);
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+// ============================================================
+//  WINNER OVERLAY
+// ============================================================
+function showWinner(index) {
+  const w = participants[index];
+  winners.unshift({ ...w, round: winners.length + 1 });
+  updateHistory();
+
+  document.getElementById('overlayWinnerName').textContent = w.name;
+  document.getElementById('overlayWinnerId').textContent   = 'ת.ז: ' + w.id;
+  document.getElementById('roundBadge').textContent        = 'סיבוב #' + winners.length;
+
+  const overlay = document.getElementById('winnerOverlay');
+  overlay.classList.add('show');
+
+  // Heavy confetti burst
+  startConfetti();
+  setTimeout(stopConfetti, 6000);
+}
+
+function closeWinner() {
+  document.getElementById('winnerOverlay').classList.remove('show');
+  stopConfetti();
+}
+
+function updateHistory() {
+  if (!winners.length) return;
+  document.getElementById('historySection').style.display = 'block';
+  document.getElementById('historyList').innerHTML = winners.map(w =>
+    `<div class="history-chip"><span class="num">${w.round}</span>${esc(w.name)}</div>`
+  ).join('');
+}
+
+// ============================================================
+//  CONFETTI ENGINE (canvas-based, physics)
+// ============================================================
+const confCanvas = document.getElementById('confettiCanvas');
+const confCtx    = confCanvas.getContext('2d');
+let confettiParticles = [];
+let confettiRunning   = false;
+let confettiRAF       = null;
+
+const CONF_COLORS = [
+  '#ff0055','#ff6600','#ffcc00','#00cc55','#00aaff',
+  '#7b2fff','#ff0099','#33cc00','#0055ff','#cc00ff',
+  '#ff4400','#00ccaa','#ffaa00','#ff3300','#44dd00',
+];
+
+function resizeConfCanvas() {
+  confCanvas.width  = window.innerWidth;
+  confCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeConfCanvas);
+resizeConfCanvas();
+
+function createParticle() {
+  const angle = Math.random() * Math.PI * 2;
+  const speed = 4 + Math.random() * 10;
+  return {
+    x:    Math.random() * confCanvas.width,
+    y:    -20,
+    vx:   Math.cos(angle) * speed * 0.4 + (Math.random() - 0.5) * 3,
+    vy:   2 + Math.random() * 8,
+    rot:  Math.random() * 360,
+    rotV: (Math.random() - 0.5) * 12,
+    w:    6 + Math.random() * 10,
+    h:    4 + Math.random() * 6,
+    color: CONF_COLORS[Math.floor(Math.random() * CONF_COLORS.length)],
+    shape: Math.random() < 0.4 ? 'circle' : (Math.random() < 0.5 ? 'rect' : 'ribbon'),
+    alpha: 1,
+    life:  1,
+    decay: 0.003 + Math.random() * 0.005,
+  };
+}
+
+function startConfetti() {
+  confettiRunning = true;
+  confettiParticles = [];
+
+  // Spawn burst
+  for (let i = 0; i < 220; i++) {
+    const p = createParticle();
+    p.vy  = -(5 + Math.random() * 14);
+    p.y   = confCanvas.height * 0.4 + Math.random() * confCanvas.height * 0.3;
+    confettiParticles.push(p);
+  }
+
+  function loop() {
+    if (!confettiRunning && confettiParticles.length === 0) return;
+
+    confCtx.clearRect(0, 0, confCanvas.width, confCanvas.height);
+
+    // Spawn more while running
+    if (confettiRunning) {
+      for (let i = 0; i < 8; i++) confettiParticles.push(createParticle());
+    }
+
+    confettiParticles = confettiParticles.filter(p => p.life > 0);
+
+    for (const p of confettiParticles) {
+      p.x   += p.vx;
+      p.y   += p.vy;
+      p.vy  += 0.25; // gravity
+      p.rot += p.rotV;
+      p.life -= p.decay;
+      p.alpha = Math.min(p.life * 2, 1);
+
+      confCtx.save();
+      confCtx.globalAlpha = p.alpha;
+      confCtx.translate(p.x, p.y);
+      confCtx.rotate((p.rot * Math.PI) / 180);
+      confCtx.fillStyle = p.color;
+
+      if (p.shape === 'circle') {
+        confCtx.beginPath();
+        confCtx.arc(0, 0, p.w / 2, 0, Math.PI * 2);
+        confCtx.fill();
+      } else if (p.shape === 'ribbon') {
+        confCtx.fillRect(-p.w / 2, -p.h * 2, p.w * 0.4, p.h * 4);
+      } else {
+        confCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      }
+      confCtx.restore();
+    }
+
+    confettiRAF = requestAnimationFrame(loop);
+  }
+
+  if (confettiRAF) cancelAnimationFrame(confettiRAF);
+  loop();
+}
+
+function stopConfetti() {
+  confettiRunning = false;
+  // particles drain naturally
+}
+
+// Close overlay on Escape key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeWinner();
+});
+</script>
+</body>
+</html>

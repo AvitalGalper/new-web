@@ -1,0 +1,8 @@
+# Ignore everything
+*
+
+# Except the new-web project
+!OneDrive/
+!OneDrive/Desktop/
+!OneDrive/Desktop/new-web/
+!OneDrive/Desktop/new-web/**
